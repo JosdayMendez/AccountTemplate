@@ -1,54 +1,61 @@
 ﻿using AccountTemplate.Models;
+using AccountTemplate.Services;
 using AccountTemplate.ViewModels;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Facebook;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Net.Mail;
-using System.Net;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AccountTemplate.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<AppUser> signInManager;
-        private readonly UserManager<AppUser> userManager;
-        private readonly ILogger<AccountController> logger;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IEmailSender _emailSender;
 
-        public AccountController(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, ILogger<AccountController> logger)
+        public AccountController(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IEmailSender emailSender)
         {
-            this.signInManager = signInManager;
-            this.userManager = userManager;
-            this.logger = logger;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _emailSender = emailSender;
         }
 
-        public IActionResult ForgotPassword()
+        public IActionResult Login()
         {
-            return View();
-        }
-
-        public IActionResult RecoverPassword()
-        {
-            return View();
-        }
-
-        public IActionResult Register(string? returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterVM model, string? returnUrl = null)
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginVM model)
         {
-            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                if (result.IsLockedOut)
+                {
+                    return RedirectToAction(nameof(Lockout));
+                }
+                ModelState.AddModelError("", "Email or password is incorrect.");
+                return View(model);
+            }
+            return View(model);
+        }
 
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterVM model)
+        {
             if (!model.AgreeToTerms)
             {
                 ModelState.AddModelError(string.Empty, "You must accept the terms and conditions to register.");
@@ -64,11 +71,10 @@ namespace AccountTemplate.Controllers
                     Email = model.Email
                 };
 
-                var result = await userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl ?? "/");
+                    return RedirectToAction("Login", "Account");
                 }
 
                 foreach (var error in result.Errors)
@@ -80,64 +86,107 @@ namespace AccountTemplate.Controllers
             return View(model);
         }
 
-        // GET: /Account/Login
-        [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public IActionResult ForgotPassword()
         {
-            ViewData["ReturnUrl"] = returnUrl;
-            return View(new LoginVM());
+            return View();
         }
 
-        // POST: /Account/Login
+
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM model, string? returnUrl = null)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordVM model)
         {
-            ViewData["ReturnUrl"] = returnUrl;
-
             if (ModelState.IsValid)
             {
-                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
-                if (result.Succeeded)
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
                 {
-                    return RedirectToLocal(returnUrl);
+                    return Json(new { success = false, message = "Email not found!" });
                 }
-                if (result.IsLockedOut)
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                var callbackUrl = Url.Action(nameof(RecoverPassword), "Account", new { email = user.Email, token }, protocol: HttpContext.Request.Scheme);
+
+                var subject = "Reset Password";
+                var message = $"Please reset your password by clicking <a href='{callbackUrl}'>here</a>";
+
+                try
                 {
-                    return RedirectToAction(nameof(Lockout));
+                    await _emailSender.SendEmailAsync(user.Email, subject, message);
+                    return Json(new { success = true, message = "Password reset email sent.", email = model.Email });
                 }
-                else
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
+                    return Json(new { success = false, message = $"Error sending email: {ex.Message}" });
                 }
             }
 
-            return View(model);
+            return Json(new { success = false, message = "Invalid data." });
         }
 
-        // POST: /Account/Logout
+        public async Task<IActionResult> RecoverPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            return View(new RecoverPasswordVM { Email = email, Token = token });
+        }
+
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecoverPassword(RecoverPasswordVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Email does not exist.");
+                return View(model);
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Password reset error.");
+                return View(model);
+            }
+
+            await _userManager.UpdateAsync(user);
+            return RedirectToAction("Login", "Account");
+        }
+
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction(nameof(Login));
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
 
-        // POST: /Account/ExternalLogin
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public IActionResult ExternalLogin(string provider, string? returnUrl = null)
         {
             var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
-            var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
 
-        // GET: /Account/ExternalLoginCallback
         [HttpGet]
         public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
         {
@@ -148,13 +197,13 @@ namespace AccountTemplate.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            var info = await signInManager.GetExternalLoginInfoAsync();
+            var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
                 return RedirectToAction(nameof(Login));
             }
 
-            var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
             if (signInResult.Succeeded)
             {
                 return RedirectToLocal(returnUrl);
@@ -168,14 +217,13 @@ namespace AccountTemplate.Controllers
                     return RedirectToAction(nameof(Login));
                 }
 
-                var user = await userManager.FindByEmailAsync(email);
+                var user = await _userManager.FindByEmailAsync(email);
                 if (user != null)
                 {
-                    // Si el usuario existe, agregar el login externo y hacer el inicio de sesión
-                    var result = await userManager.AddLoginAsync(user, info);
+                    var result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
-                        await signInManager.SignInAsync(user, isPersistent: false);
+                        await _signInManager.SignInAsync(user, isPersistent: false);
                         return RedirectToLocal(returnUrl);
                     }
 
@@ -187,30 +235,29 @@ namespace AccountTemplate.Controllers
                 }
                 else
                 {
-                    // Si el usuario no existe, crear uno nuevo
                     var name = info.Principal.FindFirstValue(ClaimTypes.Name) ?? email;
                     user = new AppUser { UserName = email, Email = email, Name = name };
-                    var result = await userManager.CreateAsync(user);
+                    var result = await _userManager.CreateAsync(user);
                     if (result.Succeeded)
                     {
-                        result = await userManager.AddLoginAsync(user, info);
+                        result = await _userManager.AddLoginAsync(user, info);
                         if (result.Succeeded)
                         {
-                            await signInManager.SignInAsync(user, isPersistent: false);
+                            await _signInManager.SignInAsync(user, isPersistent: false);
                             return RedirectToLocal(returnUrl);
                         }
                     }
+
                     foreach (var error in result.Errors)
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
-                    return View("Register", new RegisterVM { Email = email });
+                    return RedirectToAction(nameof(Login));
                 }
             }
         }
 
-        // Redirect to local URL or default to home
-        private IActionResult RedirectToLocal(string? returnUrl)
+        private IActionResult RedirectToLocal(string returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
             {
@@ -218,132 +265,14 @@ namespace AccountTemplate.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(Index), "Home");
+                return RedirectToAction(nameof(HomeController.Index), "Home");
             }
         }
 
-        // GET: /Account/Lockout
         [HttpGet]
         public IActionResult Lockout()
         {
             return View();
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordVM model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return Json(new { success = false, message = "Invalid request." });
-            }
-
-            try
-            {
-                var user = await userManager.FindByEmailAsync(model.Email);
-                if (user == null)
-                {
-                    // Retorna un mensaje de error si el correo no existe
-                    return Json(new { success = false, message = "Email not found." });
-                }
-
-                // Generar el token y construir el enlace
-                var token = await userManager.GeneratePasswordResetTokenAsync(user);
-                var resetLink = Url.Action("ResetPassword", "Account", new { token = token, email = user.Email }, Request.Scheme);
-
-                // Enviar el correo con el token y el enlace
-                await SendRecoveryEmail(user.Email, resetLink);
-
-                // Retornar la respuesta inmediatamente
-                return Json(new { success = true, message = "Recovery email sent successfully." });
-            }
-            catch (Exception ex)
-            {
-                // Capturar cualquier error inesperado para facilitar la depuración
-                return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
-            }
-        }
-
-        private async Task SendRecoveryEmail(string email, string resetLink)
-        {
-            var mail = new MailMessage("pruebaenvio16790@gmail.com", email)
-            {
-                Subject = "Password Recovery",
-                Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>",
-                IsBodyHtml = true
-            };
-
-            try
-            {
-                using (var smtp = new SmtpClient("smtp.gmail.com", 587))
-                {
-                    smtp.Credentials = new NetworkCredential("@gmail.com", ".");
-                    smtp.EnableSsl = true; 
-                    await smtp.SendMailAsync(mail);
-                }
-            }
-            catch (SmtpException smtpEx)
-            {
-                throw new Exception($"SMTP error: {smtpEx.StatusCode} - {smtpEx.Message}", smtpEx);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"An error occurred while sending email: {ex.Message}", ex);
-            }
-        }
-
-
-        //private const string TokenChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-        //private string GenerateRandomToken(int length = 6)
-        //{
-        //    var random = new Random();
-        //    var token = new char[length];
-
-        //    for (int i = 0; i < length; i++)
-        //    {
-        //        token[i] = TokenChars[random.Next(TokenChars.Length)];
-        //    }
-
-        //    return new string(token);
-        //}
-
-
-
-
-        // GET: /Account/ResetPassword
-        [HttpGet]
-        public IActionResult ResetPassword(string token, string email)
-        {
-            return View(new ResetPasswordVM { Token = token, Email = email });
-        }
-
-        // POST: /Account/ResetPassword
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(ResetPasswordVM model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await userManager.FindByEmailAsync(model.Email);
-                if (user == null)
-                {
-                    return RedirectToAction(nameof(Login));
-                }
-
-                var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
-                if (result.Succeeded)
-                {
-                    return RedirectToAction(nameof(Login));
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-            }
-
-            return View(model);
         }
     }
 }

@@ -4,7 +4,7 @@ namespace AccountTemplate.ViewModels
 {
     public class ForgotPasswordVM
     {
-        [Required]
+        [Required(ErrorMessage = "Email is required.")]
         [EmailAddress]
         public string Email { get; set; }
     }

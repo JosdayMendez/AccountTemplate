@@ -1,37 +1,43 @@
 using AccountTemplate.Data;
 using AccountTemplate.Models;
+using AccountTemplate.Services;
+using AccountTemplate.Settings;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de la cadena de conexión
+
 var connectionString = builder.Configuration.GetConnectionString("default");
 
-// Agregar servicios al contenedor
 builder.Services.AddControllersWithViews();
+
+
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-// Configuración de Identity
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    options.Password.RequiredUniqueChars = 0;
-    options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 8;
     options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedPhoneNumber = false;
 
     options.Lockout.AllowedForNewUsers = true;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     options.Lockout.MaxFailedAccessAttempts = 5;
-
-    options.User.RequireUniqueEmail = false;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Configuración de la autenticación de cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -41,13 +47,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Identity/Account/AccessDenied";
         options.SlidingExpiration = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    })
+    .AddFacebook(options =>
+    {
+        options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+        options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
     });
 
-builder.Services.AddAuthentication().AddGoogle(options =>
-{
-    options.ClientId = builder.Configuration["Authenication:Google:Client"];
-    options.ClientSecret = builder.Configuration["Authenication:Google:Client"];
-});
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -61,11 +72,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // Asegúrate de que esté antes de UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -2,21 +2,22 @@
 
 public class RegisterVM
 {
-    [Required(ErrorMessage = "Full name is required.")]
-    [StringLength(100, ErrorMessage = "Full name cannot exceed {1} characters.")]
+    [Required(ErrorMessage = "Name is required.")]
     public string Name { get; set; }
 
     [Required(ErrorMessage = "Email is required.")]
-    [EmailAddress(ErrorMessage = "Invalid email address.")]
+    [EmailAddress]
     public string Email { get; set; }
 
     [Required(ErrorMessage = "Password is required.")]
-    [StringLength(100, ErrorMessage = "Password must be at least {2} characters long.", MinimumLength = 6)]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$", ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, and one number.")]
+    [StringLength(40, MinimumLength = 8, ErrorMessage = "The {0} must be at {2} and at max {1} characters long.")]
+    [DataType(DataType.Password)]
+    [Compare("ConfirmPassword", ErrorMessage = "Password does not match.")]
     public string Password { get; set; }
 
-    [Required(ErrorMessage = "Please confirm your password.")]
-    [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+    [Required(ErrorMessage = "Confirm Password is required.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Confirm Password")]
     public string ConfirmPassword { get; set; }
 
     [Required(ErrorMessage = "You must agree to the terms.")]
