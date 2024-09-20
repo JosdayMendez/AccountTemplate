@@ -11,7 +11,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@ViewData["Title"] | AccountTemplate</title>
-
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
@@ -89,15 +88,16 @@
                     </div>
                 </form>
 
-                <div class="social-auth-links text-center">
+                <div class="social-auth-links text-center mt-2 mb-3">
                     <a href="#" class="btn btn-block btn-primary">
-                        <i class="fab fa-facebook mr-2"></i>
-                        Sign up using Facebook
+                        <i class="fab fa-facebook mr-2"></i> Sign in using Facebook
                     </a>
-                    <a href="#" class="btn btn-block btn-danger">
-                        <i class="fab fa-google-plus mr-2"></i>
-                        Sign up using Google+
+                    <a href="#" class="btn btn-block btn-danger" onclick="event.preventDefault(); document.getElementById('google-login-form').submit();">
+                        <i class="fab fa-google-plus mr-2"></i> Sign in using Google
                     </a>
+                    <form id="google-login-form" asp-controller="Account" asp-action="ExternalLogin" method="post" style="display:none;">
+                        <input type="hidden" name="provider" value="Google" />
+                    </form>
                 </div>
 
                 <a href="@Url.Action("Login", "Account")" class="text-center">I already have a membership</a>
@@ -113,9 +113,7 @@
     <script src="~/dist/js/adminlte.min.js"></script>
 
     @section Scripts {
-        @{
-            await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
+        @await Html.PartialAsync("_ValidationScriptsPartial")
     }
 </body>
 </html>
