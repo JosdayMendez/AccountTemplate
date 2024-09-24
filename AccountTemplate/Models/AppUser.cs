@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AccountTemplate.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 public class AppUser : IdentityUser
 {
-    public string Name { get; set; } 
+    public string Name { get; set; }
+
 }
