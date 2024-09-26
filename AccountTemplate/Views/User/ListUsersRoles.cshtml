@@ -1,14 +1,12 @@
-﻿@using AccountTemplate.ViewModels
-@using Microsoft.AspNetCore.Identity
-
-@model IEnumerable<IdentityRole>
+﻿@model IEnumerable<AccountTemplate.ViewModels.UserRolesVM>
 
 @{
-    ViewData["Title"] = "Roles";
+    ViewData["Title"] = "Users with Roles";
 }
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <style>
         .card {
@@ -19,6 +17,7 @@
         table {
             text-align: center;
             margin: 0 auto;
+            width: 100%;
         }
 
         th, td {
@@ -43,28 +42,35 @@
 
     <div class="card">
         <div class="card-header clearfix">
-            <a asp-action="CreateRole" class="btn btn-success create-button">Create New Role</a>
-            <h3 class="card-title">Role List</h3>
+            <h3 class="card-title">User List</h3>
+            <a class="btn btn-success create-button float-right" asp-controller="Account" asp-action="RegisterWithRole"> Create New User With Role</a>
         </div>
         <!-- /.card-header -->
         <div class="card-body">
-            <table class="table table-bordered table-striped">
+            <table id="userTable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
+                        <th>Id</th>
                         <th>Name</th>
+                        <th>Email</th>
+                        <th>Roles</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var role in Model)
+                    @foreach (var user in Model)
                     {
                         <tr>
-                            <td>@role.Name</td>
+                            <td>@user.Id</td>
+                            <td>@user.Name</td>
+                            <td>@user.Email</td>
+                            <td>@string.Join(", ", user.Roles)</td>
                             <td>
-                                <a asp-action="EditRole" asp-route-id="@role.Id" class="btn btn-primary btn-sm">Edit Role</a>
-                            @*     <form asp-action="DeleteRole" asp-route-id="@role.Id" method="post" style="display:inline;">
+                               @*  <a asp-action="EditUserRole" asp-route-id="@user.Id" class="btn btn-primary btn-sm">Edit</a> *@
+                               @* <form asp-action="Delete" asp-route-id="@user.Id" method="post" style="display:inline;">
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                 </form> *@
+                                <a asp-action="AssignRoleToUser" asp-route-email="@user.Email" class="btn btn-success btn-sm">Assign Role</a>
                             </td>
                         </tr>
                     }

@@ -14,12 +14,14 @@ namespace AccountTemplate.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailSender;
-
-        public AccountController(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IEmailSender emailSender)
+        private readonly RoleManager<IdentityRole> _roleManager;
+        public AccountController(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IEmailSender emailSender, RoleManager<IdentityRole> roleManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _emailSender = emailSender;
+            _roleManager = roleManager;
+            _roleManager = roleManager;
         }
 
         public IActionResult Login()
@@ -275,7 +277,69 @@ namespace AccountTemplate.Controllers
         {
             return View();
         }
+        [HttpGet]
+        public async Task<IActionResult> RegisterWithRole()
+        {
+            if (_roleManager == null)
+            {
+                throw new Exception("RoleManager is not properly configured");
+            }
 
-    
+            var roles = await _roleManager.Roles.ToListAsync();
+            ViewBag.Roles = roles.Select(r => r.Name).ToList();
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RegisterWithRole(RegisterWithRoleVM model)
+        {
+            var roles = await _roleManager.Roles.ToListAsync();
+            ViewBag.Roles = roles.Select(r => r.Name).ToList();
+
+            if (!model.AgreeToTerms)
+            {
+                ModelState.AddModelError(string.Empty, "You must accept the terms and conditions to register.");
+                return View(model);
+            }
+
+            if (ModelState.IsValid)
+            {
+                var user = new AppUser
+                {
+                    UserName = model.Email,
+                    Name = model.Name,
+                    Email = model.Email
+                };
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    foreach (var role in model.Roles)
+                    {
+                        var roleResult = await _userManager.AddToRoleAsync(user, role);
+                        if (!roleResult.Succeeded)
+                        {
+                            foreach (var error in roleResult.Errors)
+                            {
+                                ModelState.AddModelError(string.Empty, $"Error assigning role {role}: {error.Description}");
+                            }
+                            return View(model);
+                        }
+                    }
+
+                    await _userManager.UpdateAsync(user);
+
+                    return RedirectToAction("Login", "Account");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            return View(model);
+        }
+
     }
 }

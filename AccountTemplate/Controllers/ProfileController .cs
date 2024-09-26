@@ -27,6 +27,23 @@ namespace AccountTemplate.Controllers
             return user?.Id;
         }
 
+        public async Task<IActionResult> ListProfile()
+        {
+            var profiles = await _context.Profiles.ToListAsync();
+
+            var profileBranchVMs = profiles.Select(profile => new ProfileBranchVM
+            {
+                Profile = profile,
+                UserId = profile.UserId,
+                AssignedBranches = _context.ProfileBranches
+                    .Where(pb => pb.ProfileId == profile.Id)
+                    .Include(pb => pb.Branch)
+                    .ToList()
+            }).ToList();
+
+            return View(profileBranchVMs);
+        }
+
         public async Task<IActionResult> Index()
         {
             var userId = await GetUserIdAsync();
@@ -181,7 +198,6 @@ namespace AccountTemplate.Controllers
                 .Where(pb => pb.ProfileId == profile.Id)
                 .ToListAsync();
 
-            // Eliminar sucursales no seleccionadas
             foreach (var assignedBranch in assignedBranches)
             {
                 if (!selectedBranchIds.Contains(assignedBranch.BranchId))
@@ -190,7 +206,6 @@ namespace AccountTemplate.Controllers
                 }
             }
 
-            // Agregar sucursales seleccionadas
             foreach (var selectedBranchId in selectedBranchIds)
             {
                 if (!assignedBranches.Any(ab => ab.BranchId == selectedBranchId))
@@ -206,7 +221,7 @@ namespace AccountTemplate.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index");
+            return RedirectToAction("ListProfile");
         }
     }
 }

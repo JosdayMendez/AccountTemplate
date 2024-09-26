@@ -1,0 +1,85 @@
+﻿@model IEnumerable<AccountTemplate.ViewModels.ProfileBranchVM>
+
+@{
+    ViewData["Title"] = "List Profile";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .card {
+            margin: 0 auto;
+            max-width: 80%;
+        }
+
+        table {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        th, td {
+            vertical-align: middle;
+        }
+
+        .create-button {
+            margin-bottom: 20px;
+            float: right;
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 class="text-center mt-4">@ViewData["Title"]</h2>
+
+    <div class="card">
+        <div class="card-header clearfix">
+            <h3 class="card-title">List Profile</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Business Name</th>
+                        <th>Phone</th>
+                        <th>Primary Email</th>
+                        <th>Secondary Email</th>
+                        <th>Branches</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var profileBranchVM in Model)
+                    {
+                        <tr>
+                            <td>@profileBranchVM.Profile.BusinessName</td>
+                            <td>@profileBranchVM.Profile.Phone</td>
+                            <td>@profileBranchVM.Profile.PrimaryEmail</td>
+                            <td>@profileBranchVM.Profile.SecondaryEmail</td>
+                            <td>
+                                @foreach (var assignedBranch in profileBranchVM.AssignedBranches)
+                                {
+                                    <p>@assignedBranch.Branch.BranchName</p>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@profileBranchVM.Profile.Id" class="btn btn-primary btn-sm">Edit Profile</a>
+                                <a asp-action="AssignBranches" asp-route-id="@profileBranchVM.Profile.Id" class="btn btn-success btn-sm">Assign Branches</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+</body>
+</html>

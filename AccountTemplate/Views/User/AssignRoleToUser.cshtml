@@ -1,0 +1,50 @@
+﻿@using AccountTemplate.ViewModels
+
+@model AssignUserRoleVM
+
+@{
+    ViewData["Title"] = "Assign Role";
+}
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-4">
+        <div class="card card-primary">
+            <div class="card-header text-center">
+                <h3>@ViewData["Title"]</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="AssignRoleToUser" method="post" class="mt-4">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Email" />
+
+                    <h5>Available Roles</h5>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Assign</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var role in Model.Roles)
+                            {
+                                <tr>
+                                    <td>@role</td>
+                                    <td>
+                                        <input type="radio" name="SelectedRole" value="@role" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between mt-2">
+                        <a asp-action="Index" class="btn btn-secondary">Back to user list</a>
+                        <input type="submit" value="Save" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
+            <!-- /.card-body -->
+        </div>
+    </div>
+</div>

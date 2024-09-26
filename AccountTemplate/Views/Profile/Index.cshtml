@@ -1,60 +1,43 @@
-﻿<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Profile</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active">User Profile</li>
-                    </ol>
+﻿<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-3">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h1 class="card-title">User Profile</h1>
+            </div>
+            <div class="card-body">
+                <h3 class="profile-username text-center">@Model.PrimaryEmail</h3>
+                <ul class="list-group list-group-unbordered mb-3">
+                    @if (!string.IsNullOrEmpty(Model.BusinessName))
+                    {
+                        <li class="list-group-item">
+                            <b>Business Name:</b> <span class="float-right">@Model.BusinessName</span>
+                        </li>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <li class="list-group-item">
+                            <b>Phone:</b> <span class="float-right">@Model.Phone</span>
+                        </li>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.PrimaryEmail))
+                    {
+                        <li class="list-group-item">
+                            <b>Primary Email:</b> <span class="float-right">@Model.PrimaryEmail</span>
+                        </li>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.SecondaryEmail))
+                    {
+                        <li class="list-group-item">
+                            <b>Secondary Email:</b> <span class="float-right">@Model.SecondaryEmail</span>
+                        </li>
+                    }
+                </ul>
+                <div class="text-right">
+                    <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary" style="box-shadow: none;"><b>Edit Profile</b></a>
                 </div>
             </div>
+            <!-- /.card-body -->
         </div>
-    </section>
-
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card card-primary card-outline mx-auto" style="max-width: 400px;">
-                        <div class="card-body box-profile text-center">
-                            <h3 class="profile-username">@Model.PrimaryEmail</h3>
-
-                            <ul class="list-group list-group-unbordered mb-3">
-                                @if (!string.IsNullOrEmpty(Model.BusinessName))
-                                {
-                                    <li class="list-group-item">
-                                        <b>Business Name:</b> <span class="float-right">@Model.BusinessName</span>
-                                    </li>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.Phone))
-                                {
-                                    <li class="list-group-item">
-                                        <b>Phone:</b> <span class="float-right">@Model.Phone</span>
-                                    </li>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.PrimaryEmail))
-                                {
-                                    <li class="list-group-item">
-                                        <b>Primary Email:</b> <span class="float-right">@Model.PrimaryEmail</span>
-                                    </li>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.SecondaryEmail))
-                                {
-                                    <li class="list-group-item">
-                                        <b>Secondary Email:</b> <span class="float-right">@Model.SecondaryEmail</span>
-                                    </li>
-                                }
-                            </ul>
-
-                            <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary btn-block"><b>Edit Profile</b></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        <!-- /.card -->
+    </div>
 </div>

@@ -1,0 +1,60 @@
+﻿@model AccountTemplate.ViewModels.UserRolesVM
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <title>Editar Usuario</title>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Editar Usuario</h2>
+
+        <div class="card">
+            <div class="card-header clearfix">
+                <a asp-action="Index" class="btn btn-success create-button float-right">Volver a la lista</a>
+                <h3 class="card-title">Detalles del Usuario</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="form-group">
+                        <label asp-for="Name">Nombre</label>
+                        <input asp-for="Name" class="form-control" placeholder="Ingrese el nombre" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email">Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="Ingrese el email" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Roles">Roles</label>
+                        <select asp-for="Roles" class="form-control" multiple>
+                            @foreach (var role in ViewBag.Roles)
+                            {
+                                <option value="@role.Name">@role.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Roles" class="text-danger"></span>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        @await Html.PartialAsync("_ValidationScriptsPartial")
+    }
+</body>
+</html>
