@@ -22,6 +22,77 @@ namespace AccountTemplate.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("AccountTemplate.Models.Branch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("BranchName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Geolocation")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("WhatsApp")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Branches", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "Dirección 1",
+                            BranchName = "Sucursal de prueba 1",
+                            Description = "Descripción 1",
+                            Email = "email1@example.com",
+                            Geolocation = "Geolocalización 1",
+                            Phone = "Teléfono 1",
+                            WhatsApp = "WhatsApp 1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "Dirección 2",
+                            BranchName = "Sucursal de prueba 2",
+                            Description = "Descripción 2",
+                            Email = "email2@example.com",
+                            Geolocation = "Geolocalización 2",
+                            Phone = "Teléfono 2",
+                            WhatsApp = "WhatsApp 2"
+                        });
+                });
+
             modelBuilder.Entity("AccountTemplate.Models.Profile", b =>
                 {
                     b.Property<int>("Id")
@@ -55,6 +126,29 @@ namespace AccountTemplate.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Profiles", (string)null);
+                });
+
+            modelBuilder.Entity("AccountTemplate.Models.ProfileBranch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProfileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("ProfileBranches", (string)null);
                 });
 
             modelBuilder.Entity("AppUser", b =>
@@ -124,6 +218,38 @@ namespace AccountTemplate.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "adminId",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "95d7eb56-7188-49f2-81a9-c4f03a35bc3d",
+                            Email = "admin@example.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            Name = "Administrador",
+                            NormalizedUserName = "ADMIN",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "a950b1d9-4dbe-40f7-afe0-032c03d12aa1",
+                            TwoFactorEnabled = false,
+                            UserName = "admin"
+                        },
+                        new
+                        {
+                            Id = "employeeId",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "8302b305-3aed-41f7-b93b-928d005dfc40",
+                            Email = "employee@example.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            Name = "Empleado",
+                            NormalizedUserName = "EMPLOYEE",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "e2b5414e-ff49-440f-a241-213930943d9c",
+                            TwoFactorEnabled = false,
+                            UserName = "employee"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -151,6 +277,22 @@ namespace AccountTemplate.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "adminRole",
+                            ConcurrencyStamp = "0efb0179-08ca-4f10-aae1-ebbcc805f005",
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
+                        },
+                        new
+                        {
+                            Id = "employeeRole",
+                            ConcurrencyStamp = "4382975c-f985-4480-8a2e-d4126691b722",
+                            Name = "Employee",
+                            NormalizedName = "EMPLOYEE"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -238,6 +380,18 @@ namespace AccountTemplate.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "adminId",
+                            RoleId = "adminRole"
+                        },
+                        new
+                        {
+                            UserId = "employeeId",
+                            RoleId = "employeeRole"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -268,6 +422,25 @@ namespace AccountTemplate.Migrations
                         .IsRequired();
 
                     b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("AccountTemplate.Models.ProfileBranch", b =>
+                {
+                    b.HasOne("AccountTemplate.Models.Branch", "Branch")
+                        .WithMany("ProfileBranches")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AccountTemplate.Models.Profile", "Profile")
+                        .WithMany("ProfileBranches")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -319,6 +492,16 @@ namespace AccountTemplate.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AccountTemplate.Models.Branch", b =>
+                {
+                    b.Navigation("ProfileBranches");
+                });
+
+            modelBuilder.Entity("AccountTemplate.Models.Profile", b =>
+                {
+                    b.Navigation("ProfileBranches");
                 });
 #pragma warning restore 612, 618
         }

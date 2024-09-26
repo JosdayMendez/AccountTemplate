@@ -1,0 +1,121 @@
+﻿@model IEnumerable<Branch>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <style>
+        .card {
+            margin: 0 auto;
+            max-width: 80%;
+        }
+
+        table {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        th, td {
+            vertical-align: middle;
+        }
+
+        .create-button {
+            margin-bottom: 20px; 
+            float: right; 
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2 class="text-center">Branches</h2>
+
+    <div class="card">
+        <div class="card-header clearfix">
+            <!-- Button aligned to the right -->
+            <a asp-action="Create" class="btn btn-success create-button">Create New Branch</a>
+            <h3 class="card-title">Branch List</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <table id="branchTable" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Phone</th>
+                        <th>WhatsApp</th>
+                        <th>Geolocation</th>
+                        <th>Email</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var branch in Model)
+                    {
+                        <tr>
+                            <td>@branch.BranchName</td>
+                            <td>@branch.Address</td>
+                            <td>@branch.Phone</td>
+                            <td>@branch.WhatsApp</td>
+                            <td>@branch.Geolocation</td>
+                            <td>@branch.Email</td>
+                            <td>@branch.Description</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@branch.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@branch.Id" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+    <!-- jQuery -->
+    <script src="../../plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables  & Plugins -->
+    <script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="../../plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="../../plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="../../plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="../../plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="../../plugins/jszip/jszip.min.js"></script>
+    <script src="../../plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="../../plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="../../plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="../../plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="../../plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="../../dist/js/adminlte.min.js"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="../../dist/js/demo.js"></script>
+
+    <!-- Page specific script -->
+    <script>
+        $(function () {
+            $("#branchTable").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#branchTable_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+</body>
+</html>

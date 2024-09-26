@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AccountTemplate.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace AccountTemplate.ViewModels
 {
@@ -14,6 +15,6 @@ namespace AccountTemplate.ViewModels
         public string PrimaryEmail { get; set; } 
 
         [EmailAddress(ErrorMessage = "Invalid secondary email address.")]
-        public string SecondaryEmail { get; set; } 
+        public string SecondaryEmail { get; set; }
     }
 }

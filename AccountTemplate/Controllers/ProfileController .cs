@@ -42,10 +42,10 @@ namespace AccountTemplate.Controllers
                 profile = new Profile
                 {
                     UserId = userId,
-                    BusinessName = string.Empty, 
+                    BusinessName = string.Empty,
                     Phone = string.Empty,
-                    PrimaryEmail = string.Empty, 
-                    SecondaryEmail = string.Empty 
+                    PrimaryEmail = string.Empty,
+                    SecondaryEmail = string.Empty
                 };
 
                 _context.Profiles.Add(profile);
@@ -85,7 +85,7 @@ namespace AccountTemplate.Controllers
                 SecondaryEmail = profile.SecondaryEmail
             };
 
-            return View(profileVM); 
+            return View(profileVM);
         }
 
         [HttpPost]
@@ -104,10 +104,9 @@ namespace AccountTemplate.Controllers
                 var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
                 if (profile == null)
                 {
-                    return RedirectToAction("Create", "Profile"); 
+                    return RedirectToAction("Create", "Profile");
                 }
 
-        
                 profile.BusinessName = model.BusinessName;
                 profile.Phone = model.Phone;
                 profile.PrimaryEmail = model.PrimaryEmail;
@@ -115,8 +114,7 @@ namespace AccountTemplate.Controllers
 
                 try
                 {
-       
-                    _context.Profiles.Update(profile);
+                    _context.Entry(profile).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                     return RedirectToAction("Index");
                 }
@@ -133,5 +131,82 @@ namespace AccountTemplate.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> AssignBranches()
+        {
+            var userId = await GetUserIdAsync();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null)
+            {
+                return RedirectToAction("Create", "Profile");
+            }
+
+            var branches = await _context.Branches.ToListAsync();
+            var assignedBranches = await _context.ProfileBranches
+                .Where(pb => pb.ProfileId == profile.Id)
+                .Include(pb => pb.Branch)
+                .ToListAsync();
+
+            var viewModel = new ProfileBranchVM
+            {
+                Profile = profile,
+                Branches = branches,
+                AssignedBranches = assignedBranches
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AssignBranches(ProfileBranchVM model)
+        {
+            var userId = await GetUserIdAsync();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null)
+            {
+                return RedirectToAction("Create", "Profile");
+            }
+
+            var selectedBranchIds = model.SelectedBranchIds;
+            var assignedBranches = await _context.ProfileBranches
+                .Where(pb => pb.ProfileId == profile.Id)
+                .ToListAsync();
+
+            // Eliminar sucursales no seleccionadas
+            foreach (var assignedBranch in assignedBranches)
+            {
+                if (!selectedBranchIds.Contains(assignedBranch.BranchId))
+                {
+                    _context.ProfileBranches.Remove(assignedBranch);
+                }
+            }
+
+            // Agregar sucursales seleccionadas
+            foreach (var selectedBranchId in selectedBranchIds)
+            {
+                if (!assignedBranches.Any(ab => ab.BranchId == selectedBranchId))
+                {
+                    var newAssignedBranch = new ProfileBranch
+                    {
+                        ProfileId = profile.Id,
+                        BranchId = selectedBranchId
+                    };
+                    _context.ProfileBranches.Add(newAssignedBranch);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
     }
 }

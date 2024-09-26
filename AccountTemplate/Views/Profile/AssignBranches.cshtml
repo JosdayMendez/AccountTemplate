@@ -1,0 +1,54 @@
+﻿@using AccountTemplate.ViewModels
+@model ProfileBranchVM
+
+@{
+    ViewData["Title"] = "Assign Branches";
+}
+
+<h1 class="text-center mt-4">@ViewData["Title"]</h1>
+
+<form asp-action="AssignBranches" method="post" class="mt-4">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Profile.Id" />
+
+    <h3>Assigned Branches</h3>
+    @if (Model.AssignedBranches != null && Model.AssignedBranches.Any())
+    {
+        <ul class="list-group">
+            @foreach (var branch in Model.AssignedBranches)
+            {
+                <li class="list-group-item">@branch.Branch.BranchName</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>No branches assigned.</p>
+    }
+
+    <h3 class="mt-4">Available Branches</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Branch</th>
+                <th>Assign</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var branch in Model.Branches)
+            {
+                <tr>
+                    <td>@branch.BranchName</td>
+                    <td>
+                        <input type="checkbox" name="SelectedBranchIds" value="@branch.Id" @(Model.AssignedBranches != null && Model.AssignedBranches.Any(ab => ab.BranchId == branch.Id) ? "checked" : "") />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="form-group text-center mt-4">
+        <input type="submit" value="Save" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary ml-2">Back to Profile</a>
+    </div>
+</form>

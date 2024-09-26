@@ -1,0 +1,30 @@
+﻿@using AccountTemplate.ViewModels
+@using Microsoft.AspNetCore.Identity
+
+@model IEnumerable<IdentityRole>
+
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<h1 class="text-center mt-4">@ViewData["Title"]</h1>
+
+<table class="table table-bordered table-hover mt-4">
+    <thead class="thead-light">
+        <tr>
+            <th>Role Name</th>
+            <th class="text-center">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var role in Model)
+        {
+            <tr>
+                <td>@role.Name</td>
+                <td class="text-center">
+                    <a asp-action="EditRole" asp-route-id="@role.Id" class="btn btn-primary btn-sm">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

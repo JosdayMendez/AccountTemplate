@@ -23,5 +23,7 @@ namespace AccountTemplate.Models
 
         [EmailAddress]
         public string SecondaryEmail { get; set; }
+
+        public ICollection<ProfileBranch> ProfileBranches { get; set; }
     }
 }

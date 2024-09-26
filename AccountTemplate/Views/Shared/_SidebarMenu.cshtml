@@ -1,0 +1,82 @@
+﻿<nav class="mt-2">
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                <i class="nav-icon fas fa-id-card"></i>
+                <p>Index</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Profile" asp-action="Index">
+                <i class="nav-icon fas fa-id-card"></i>
+                <p>Profile</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Profile" asp-action="AssignBranches">
+                <i class="nav-icon fas fa-building"></i>
+                <p>Branches</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Role" asp-action="RoleList">
+                <i class="nav-icon fas fa-list-alt"></i>
+                <p>Role List</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Role" asp-action="CreateRole">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Create Role</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Branch" asp-action="Create">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Create Branch</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Branch" asp-action="Index">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Branchs</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Employee" asp-action="ListProfile">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Profiles</p>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Employee" asp-action="ListUsers">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Users</p>
+            </a>
+        </li>
+         <li class="nav-item">
+            <a class="nav-link" asp-controller="Employee" asp-action="ListUsersRoles">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Users Roles</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Employee" asp-action="">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Example</p>
+            </a>
+        </li>
+
+        
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <i class="nav-icon fas fa-sign-out-alt"></i>
+                <p>Logout</p>
+            </a>
+            <form id="logout-form" asp-action="Logout" asp-controller="Account" method="post" style="display: none;">
+                @Html.AntiForgeryToken()
+            </form>
+        </li>
+    </ul>
+</nav>

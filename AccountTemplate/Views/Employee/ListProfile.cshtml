@@ -1,0 +1,33 @@
+﻿@model IEnumerable<AccountTemplate.ViewModels.ProfileVM>
+
+@{
+    ViewData["Title"] = "Profile List";
+}
+
+<h1>Profile List</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Business Name</th>
+            <th>Phone</th>
+            <th>Primary Email</th>
+            <th>Secondary Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var profile in Model)
+        {
+            <tr>
+                <td>@profile.BusinessName</td>
+                <td>@profile.Phone</td>
+                <td>@profile.PrimaryEmail</td>
+                <td>@profile.SecondaryEmail</td>
+                <td>
+                    <a href="@Url.Action("EditProfile", "Employee")" class="btn btn-primary btn-block"><b>Edit Profile</b></a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
