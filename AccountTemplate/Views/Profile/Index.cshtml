@@ -1,4 +1,11 @@
-﻿<div class="d-flex justify-content-center align-items-center vh-100">
+﻿@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="d-flex justify-content-center align-items-center vh-100">
     <div class="col-md-3">
         <div class="card card-primary">
             <div class="card-header">
@@ -7,12 +14,27 @@
             <div class="card-body">
                 <h3 class="profile-username text-center">@Model.PrimaryEmail</h3>
                 <ul class="list-group list-group-unbordered mb-3">
-                    @if (!string.IsNullOrEmpty(Model.BusinessName))
+                    @if (!string.IsNullOrEmpty(Model.UserName))
                     {
                         <li class="list-group-item">
-                            <b>Business Name:</b> <span class="float-right">@Model.BusinessName</span>
+                            <b>User Name:</b> <span class="float-right">@Model.UserName</span>
                         </li>
                     }
+                    @if (Model.Branches != null && Model.Branches.Count > 0)
+                    {
+                        <li class="list-group-item">
+                            <b>Business Names:</b>
+                            <span class="float-right">
+                                @foreach (var branch in Model.Branches)
+                                {
+                                    <span>@branch</span>
+
+                                    <br />
+                                }
+                            </span>
+                        </li>
+                    }
+
                     @if (!string.IsNullOrEmpty(Model.Phone))
                     {
                         <li class="list-group-item">
@@ -29,6 +51,12 @@
                     {
                         <li class="list-group-item">
                             <b>Secondary Email:</b> <span class="float-right">@Model.SecondaryEmail</span>
+                        </li>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Role))
+                    {
+                        <li class="list-group-item">
+                            <b>Role:</b> <span class="float-right">@Model.Role</span>
                         </li>
                     }
                 </ul>

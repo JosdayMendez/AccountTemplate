@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AccountTemplate.Controllers
@@ -31,20 +32,20 @@ namespace AccountTemplate.Controllers
         {
             var profiles = await _context.Profiles.ToListAsync();
 
-            var profileBranchVMs = profiles.Select(profile => new ProfileBranchVM
+            var profileVMs = profiles.Select(p => new ProfileVM
             {
-                Profile = profile,
-                UserId = profile.UserId,
-                AssignedBranches = _context.ProfileBranches
-                    .Where(pb => pb.ProfileId == profile.Id)
-                    .Include(pb => pb.Branch)
-                    .ToList()
+                UserName = p.UserName,
+                Phone = p.Phone,
+                PrimaryEmail = p.PrimaryEmail,
+                SecondaryEmail = p.SecondaryEmail,
+                Role = p.Role,
+                BusinessName = p.BusinessName
             }).ToList();
 
-            return View(profileBranchVMs);
+            return View(profileVMs);
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string selectedBranch = null)
         {
             var userId = await GetUserIdAsync();
             if (userId == null)
@@ -53,16 +54,31 @@ namespace AccountTemplate.Controllers
             }
 
             var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            var appUser = await _context.Users.FindAsync(userId);
+
+            var userBranches = await _context.UserBranches
+                .Where(ub => ub.UserId == userId)
+                .Include(ub => ub.Branch)
+                .ToListAsync();
+
+            var branchNames = userBranches.Select(ub => ub.Branch.BranchName).ToList();
+
+            var businessName = selectedBranch ?? branchNames.FirstOrDefault() ?? "N/A";
+
+            var roles = await _userManager.GetRolesAsync(appUser);
+            var userRole = roles.FirstOrDefault();
 
             if (profile == null)
             {
                 profile = new Profile
                 {
                     UserId = userId,
-                    BusinessName = string.Empty,
-                    Phone = string.Empty,
-                    PrimaryEmail = string.Empty,
-                    SecondaryEmail = string.Empty
+                    BusinessName = businessName,
+                    Phone = profile?.Phone ?? appUser?.PhoneNumber ?? "88888888",
+                    PrimaryEmail = profile?.PrimaryEmail ?? appUser?.Email ?? "example@gmail.com",
+                    SecondaryEmail = profile?.SecondaryEmail ?? "example@gmail.com",
+                    UserName = profile?.UserName ?? appUser?.UserName ?? "UserName",
+                    Role = userRole ?? "N/A",
                 };
 
                 _context.Profiles.Add(profile);
@@ -71,10 +87,14 @@ namespace AccountTemplate.Controllers
 
             var profileVM = new ProfileVM
             {
-                BusinessName = profile.BusinessName,
-                Phone = profile.Phone,
-                PrimaryEmail = profile.PrimaryEmail,
-                SecondaryEmail = profile.SecondaryEmail
+                BusinessName = businessName,
+                Phone = profile?.Phone ?? appUser?.PhoneNumber ?? "N/A",
+                PrimaryEmail = profile?.PrimaryEmail ?? appUser?.Email ?? "N/A",
+                SecondaryEmail = profile?.SecondaryEmail ?? "N/A",
+                UserName = profile?.UserName ?? appUser?.UserName ?? "N/A",
+                Role = userRole ?? "N/A",
+                Branches = branchNames,
+                SelectedBranch = selectedBranch ?? branchNames.FirstOrDefault()
             };
 
             return View(profileVM);
@@ -94,12 +114,27 @@ namespace AccountTemplate.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            var appUser = await _context.Users.FindAsync(userId);
+            var roles = await _userManager.GetRolesAsync(appUser);
+            var userRole = roles.FirstOrDefault() ?? "N/A";
+
+            var userBranches = await _context.UserBranches
+                .Where(ub => ub.UserId == userId)
+                .Include(ub => ub.Branch)
+                .ToListAsync();
+
+            var branchNames = userBranches.Select(ub => ub.Branch.BranchName).ToList();
+            var combinedBranches = string.Join(", ", branchNames);
+
             var profileVM = new ProfileVM
             {
                 BusinessName = profile.BusinessName,
                 Phone = profile.Phone,
                 PrimaryEmail = profile.PrimaryEmail,
-                SecondaryEmail = profile.SecondaryEmail
+                SecondaryEmail = profile.SecondaryEmail,
+                UserName = profile.UserName,
+                Role = userRole,
+                Branches = branchNames
             };
 
             return View(profileVM);
@@ -121,9 +156,11 @@ namespace AccountTemplate.Controllers
                 var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
                 if (profile == null)
                 {
-                    return RedirectToAction("Create", "Profile");
+                    ModelState.AddModelError("", "Profile not found.");
+                    return View(model);
                 }
 
+                profile.UserName = model.UserName;
                 profile.BusinessName = model.BusinessName;
                 profile.Phone = model.Phone;
                 profile.PrimaryEmail = model.PrimaryEmail;
@@ -133,95 +170,30 @@ namespace AccountTemplate.Controllers
                 {
                     _context.Entry(profile).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Profile updated successfully.";
                     return RedirectToAction("Index");
                 }
                 catch (DbUpdateException dbEx)
                 {
                     ModelState.AddModelError("", "Database error: " + dbEx.Message);
+                    TempData["ErrorMessage"] = "Error updating profile: " + dbEx.Message;
+                    return View(model);
                 }
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", "Error updating profile: " + ex.Message);
+                    TempData["ErrorMessage"] = "Error updating profile: " + ex.Message;
+                    return View(model);
                 }
             }
-
-            return View(model);
-        }
-
-        public async Task<IActionResult> AssignBranches()
-        {
-            var userId = await GetUserIdAsync();
-            if (userId == null)
+            else
             {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
-            if (profile == null)
-            {
-                return RedirectToAction("Create", "Profile");
-            }
-
-            var branches = await _context.Branches.ToListAsync();
-            var assignedBranches = await _context.ProfileBranches
-                .Where(pb => pb.ProfileId == profile.Id)
-                .Include(pb => pb.Branch)
-                .ToListAsync();
-
-            var viewModel = new ProfileBranchVM
-            {
-                Profile = profile,
-                Branches = branches,
-                AssignedBranches = assignedBranches
-            };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AssignBranches(ProfileBranchVM model)
-        {
-            var userId = await GetUserIdAsync();
-            if (userId == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
-            if (profile == null)
-            {
-                return RedirectToAction("Create", "Profile");
-            }
-
-            var selectedBranchIds = model.SelectedBranchIds;
-            var assignedBranches = await _context.ProfileBranches
-                .Where(pb => pb.ProfileId == profile.Id)
-                .ToListAsync();
-
-            foreach (var assignedBranch in assignedBranches)
-            {
-                if (!selectedBranchIds.Contains(assignedBranch.BranchId))
+                foreach (var error in ModelState.Values.SelectMany(x => x.Errors))
                 {
-                    _context.ProfileBranches.Remove(assignedBranch);
+                    TempData["ErrorMessage"] += error.ErrorMessage + Environment.NewLine;
                 }
+                return View(model);
             }
-
-            foreach (var selectedBranchId in selectedBranchIds)
-            {
-                if (!assignedBranches.Any(ab => ab.BranchId == selectedBranchId))
-                {
-                    var newAssignedBranch = new ProfileBranch
-                    {
-                        ProfileId = profile.Id,
-                        BranchId = selectedBranchId
-                    };
-                    _context.ProfileBranches.Add(newAssignedBranch);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("ListProfile");
         }
     }
 }

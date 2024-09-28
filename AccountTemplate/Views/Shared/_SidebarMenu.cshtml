@@ -1,27 +1,27 @@
 ﻿<nav class="mt-2">
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Home" asp-action="Index">
-                <i class="nav-icon fas fa-id-card"></i>
-                <p>Index</p>
-            </a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link" asp-controller="Profile" asp-action="Index">
                 <i class="nav-icon fas fa-id-card"></i>
                 <p>Profile</p>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Profile" asp-action="AssignBranches">
-                <i class="nav-icon fas fa-building"></i>
-                <p>Branches</p>
+            <a class="nav-link" asp-controller="Profile" asp-action="ListProfile">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Profiles</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="User" asp-action="ListUsers">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Users</p>
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" asp-controller="Role" asp-action="RoleList">
                 <i class="nav-icon fas fa-list-alt"></i>
-                <p>Role List</p>
+                <p>Roles</p>
             </a>
         </li>
         <li class="nav-item">
@@ -31,36 +31,18 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" asp-controller="Branch" asp-action="Index">
+                <i class="nav-icon fas fa-user-tag"></i>
+                <p>Branches</p>
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" asp-controller="Branch" asp-action="Create">
                 <i class="nav-icon fas fa-user-tag"></i>
                 <p>Create Branch</p>
             </a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" asp-controller="Branch" asp-action="Index">
-                <i class="nav-icon fas fa-user-tag"></i>
-                <p>Branchs</p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" asp-controller="Profile" asp-action="ListProfile">
-                <i class="nav-icon fas fa-user-tag"></i>
-                <p>Profiles Branchs</p>
-            </a>
-        </li>
 
-        <li class="nav-item">
-            <a class="nav-link" asp-controller="User" asp-action="ListUsers">
-                <i class="nav-icon fas fa-user-tag"></i>
-                <p>Users</p>
-            </a>
-        </li>
-         <li class="nav-item">
-            <a class="nav-link" asp-controller="User" asp-action="ListUsersRoles">
-                <i class="nav-icon fas fa-user-tag"></i>
-                <p>Users Roles</p>
-            </a>
-        </li>
         <li class="nav-item">
             <a class="nav-link" asp-controller="Account" asp-action="RegisterWithRole">
                 <i class="nav-icon fas fa-user-tag"></i>

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AccountTemplate.Migrations
 {
-    public partial class up : Migration
+    public partial class update : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -59,9 +59,10 @@ namespace AccountTemplate.Migrations
                     Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     WhatsApp = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Geolocation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    GoogleMapsLink = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -184,7 +185,9 @@ namespace AccountTemplate.Migrations
                     BusinessName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PrimaryEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SecondaryEmail = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    UserName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    SecondaryEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -198,67 +201,30 @@ namespace AccountTemplate.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProfileBranches",
+                name: "UserBranches",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ProfileId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     BranchId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProfileBranches", x => x.Id);
+                    table.PrimaryKey("PK_UserBranches", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProfileBranches_Branches_BranchId",
+                        name: "FK_UserBranches_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserBranches_Branches_BranchId",
                         column: x => x.BranchId,
                         principalTable: "Branches",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProfileBranches_Profiles_ProfileId",
-                        column: x => x.ProfileId,
-                        principalTable: "Profiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
-
-            migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[,]
-                {
-                    { "adminRole", "0efb0179-08ca-4f10-aae1-ebbcc805f005", "Administrator", "ADMINISTRATOR" },
-                    { "employeeRole", "4382975c-f985-4480-8a2e-d4126691b722", "Employee", "EMPLOYEE" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "Name", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[,]
-                {
-                    { "adminId", 0, "95d7eb56-7188-49f2-81a9-c4f03a35bc3d", "admin@example.com", true, false, null, "Administrador", null, "ADMIN", null, null, false, "a950b1d9-4dbe-40f7-afe0-032c03d12aa1", false, "admin" },
-                    { "employeeId", 0, "8302b305-3aed-41f7-b93b-928d005dfc40", "employee@example.com", true, false, null, "Empleado", null, "EMPLOYEE", null, null, false, "e2b5414e-ff49-440f-a241-213930943d9c", false, "employee" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Branches",
-                columns: new[] { "Id", "Address", "BranchName", "Description", "Email", "Geolocation", "Phone", "WhatsApp" },
-                values: new object[,]
-                {
-                    { 1, "Dirección 1", "Sucursal de prueba 1", "Descripción 1", "email1@example.com", "Geolocalización 1", "Teléfono 1", "WhatsApp 1" },
-                    { 2, "Dirección 2", "Sucursal de prueba 2", "Descripción 2", "email2@example.com", "Geolocalización 2", "Teléfono 2", "WhatsApp 2" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUserRoles",
-                columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "adminRole", "adminId" });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUserRoles",
-                columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "employeeRole", "employeeId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -300,18 +266,18 @@ namespace AccountTemplate.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProfileBranches_BranchId",
-                table: "ProfileBranches",
+                name: "IX_Profiles_UserId",
+                table: "Profiles",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserBranches_BranchId",
+                table: "UserBranches",
                 column: "BranchId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProfileBranches_ProfileId",
-                table: "ProfileBranches",
-                column: "ProfileId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Profiles_UserId",
-                table: "Profiles",
+                name: "IX_UserBranches_UserId",
+                table: "UserBranches",
                 column: "UserId");
         }
 
@@ -333,19 +299,19 @@ namespace AccountTemplate.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "ProfileBranches");
+                name: "Profiles");
+
+            migrationBuilder.DropTable(
+                name: "UserBranches");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Branches");
-
-            migrationBuilder.DropTable(
-                name: "Profiles");
-
-            migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Branches");
         }
     }
 }

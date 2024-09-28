@@ -26,13 +26,6 @@ namespace AccountTemplate.Controllers
             return user?.Id;
         }
 
-
-        public async Task<IActionResult> ListUsers()
-        {
-            var users = await _userManager.Users.ToListAsync();
-            return View(users);
-        }
-
         [Route("EditUser/{id}")]
         public async Task<IActionResult> EditUser(string id)
         {
@@ -53,7 +46,7 @@ namespace AccountTemplate.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> ListUsersRoles()
+        public async Task<IActionResult> ListUsers()
         {
             var users = await _userManager.Users.ToListAsync();
 
@@ -77,7 +70,7 @@ namespace AccountTemplate.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> AssignRoleToUser(string email)
+        public async Task<IActionResult> AssignRole(string email)
         {
             if (string.IsNullOrEmpty(email))
             {
@@ -101,7 +94,7 @@ namespace AccountTemplate.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignRoleToUser(AssignUserRoleVM model)
+        public async Task<IActionResult> AssignRole(AssignUserRoleVM model)
         {
             if (string.IsNullOrEmpty(model.Email))
             {
@@ -130,7 +123,7 @@ namespace AccountTemplate.Controllers
             var result = await _userManager.AddToRoleAsync(user, model.SelectedRole);
             if (result.Succeeded)
             {
-                return RedirectToAction("ListUsersRoles"); 
+                return RedirectToAction("ListUsers");
             }
 
             foreach (var error in result.Errors)
@@ -140,6 +133,97 @@ namespace AccountTemplate.Controllers
 
             return View(model);
         }
-        
+
+        public async Task<IActionResult> AssignBranches()
+        {
+            var userId = await GetUserIdAsync();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return RedirectToAction("Create", "Profile");
+            }
+
+            var branches = await _context.Branches.ToListAsync();
+            var assignedBranches = await _context.UserBranches
+                .Where(pb => pb.UserId == userId)
+                .Include(pb => pb.Branch)
+                .ToListAsync();
+
+            var viewModel = new UserBranchVM
+            {
+                User = user,
+                Branches = branches,
+                AssignedBranches = assignedBranches
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AssignBranches(UserBranchVM model)
+        {
+            var userId = await GetUserIdAsync();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return RedirectToAction("Create", "Profile");
+            }
+
+            if (model.SelectedBranchIds == null || model.SelectedBranchIds.Length == 0)
+            {
+                ModelState.AddModelError(string.Empty, "Please select at least one branch.");
+
+                var branches = await _context.Branches.ToListAsync();
+                var assignedBranches = await _context.UserBranches
+                    .Where(pb => pb.UserId == userId)
+                    .Include(pb => pb.Branch)
+                    .ToListAsync();
+
+                model.Branches = branches;
+                model.AssignedBranches = assignedBranches;
+
+                return View(model);
+            }
+
+            var selectedBranchIds = model.SelectedBranchIds;
+            var assignedBranchesToUpdate = await _context.UserBranches
+                .Where(pb => pb.UserId == userId)
+                .ToListAsync();
+
+            foreach (var assignedBranch in assignedBranchesToUpdate)
+            {
+                if (!selectedBranchIds.Any(id => id == assignedBranch.BranchId))
+                {
+                    _context.UserBranches.Remove(assignedBranch);
+                }
+            }
+
+            foreach (var selectedBranchId in selectedBranchIds)
+            {
+                if (!assignedBranchesToUpdate.Any(pb => pb.BranchId == selectedBranchId))
+                {
+                    var userBranch = new UserBranch
+                    {
+                        UserId = userId,
+                        BranchId = selectedBranchId
+                    };
+                    _context.UserBranches.Add(userBranch);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("AssignBranches");
+        }
     }
 }

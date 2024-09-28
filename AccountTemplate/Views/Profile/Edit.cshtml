@@ -1,48 +1,72 @@
 ﻿@model AccountTemplate.ViewModels.ProfileVM
 
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="col-md-4">
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="col-lg-6 col-md-8 col-sm-12">
         <div class="card card-primary">
             <div class="card-header">
-                <h3 class="card-title">Edit Your Information</h3>
+                <h1 class="card-title">User Profile</h1>
             </div>
             <div class="card-body">
-                <form asp-action="Edit" method="post">
-                    <div class="form-group">
-                        <label asp-for="BusinessName"></label>
-                        <input asp-for="BusinessName" class="form-control" />
-                        <span asp-validation-for="BusinessName" class="text-danger"></span>
+                <h3 class="profile-username text-center">@Model.PrimaryEmail</h3>
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                @{
+                    var errorMessage = TempData["ErrorMessage"] as string;
+                    var successMessage = TempData["SuccessMessage"] as string;
+                    var combinedBranches = string.Join(", ", Model.Branches ?? Enumerable.Empty<string>());
+                }
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
                     </div>
+                }
+
+                <form asp-action="Edit" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
                     <div class="form-group">
-                        <label asp-for="Phone"></label>
+                        <label asp-for="UserName" class="control-label"></label>
+                        <input asp-for="UserName" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Phone" class="control-label"></label>
                         <input asp-for="Phone" class="form-control" />
                         <span asp-validation-for="Phone" class="text-danger"></span>
                     </div>
+
                     <div class="form-group">
-                        <label asp-for="PrimaryEmail"></label>
-                        <input asp-for="PrimaryEmail" class="form-control" />
+                        <label asp-for="PrimaryEmail" class="control-label"></label>
+                        <input asp-for="PrimaryEmail" class="form-control" readonly />
                         <span asp-validation-for="PrimaryEmail" class="text-danger"></span>
                     </div>
+
                     <div class="form-group">
-                        <label asp-for="SecondaryEmail"></label>
+                        <label asp-for="SecondaryEmail" class="control-label"></label>
                         <input asp-for="SecondaryEmail" class="form-control" />
                         <span asp-validation-for="SecondaryEmail" class="text-danger"></span>
                     </div>
 
-                    <div class="d-flex justify-content-between mt-3">
-                        <a asp-action="Index" class="btn btn-secondary">Back</a>
+                    <div class="form-group">
+                        <label asp-for="BusinessName" class="control-label">Business Name (Branches)</label>
+                        <input asp-for="BusinessName" class="form-control" value="@combinedBranches" readonly />
+                        <span asp-validation-for="BusinessName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" class="form-control" value="@Model.Role" readonly />
+                    </div>
+
+                    <div class="text-right">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
-
-                @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
-                }
             </div>
-
         </div>
     </div>
 </div>
- 
-</html>

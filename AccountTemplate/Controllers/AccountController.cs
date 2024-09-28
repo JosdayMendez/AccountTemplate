@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace AccountTemplate.Controllers
 {
@@ -15,12 +16,12 @@ namespace AccountTemplate.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailSender;
         private readonly RoleManager<IdentityRole> _roleManager;
+
         public AccountController(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IEmailSender emailSender, RoleManager<IdentityRole> roleManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _emailSender = emailSender;
-            _roleManager = roleManager;
             _roleManager = roleManager;
         }
 
@@ -69,7 +70,7 @@ namespace AccountTemplate.Controllers
             {
                 AppUser user = new()
                 {
-                    UserName = model.Email,
+                    UserName = model.Name,
                     Name = model.Name,
                     Email = model.Email
                 };
@@ -93,7 +94,6 @@ namespace AccountTemplate.Controllers
         {
             return View();
         }
-
 
         [HttpPost]
         [AllowAnonymous]
@@ -277,6 +277,7 @@ namespace AccountTemplate.Controllers
         {
             return View();
         }
+
         [HttpGet]
         public async Task<IActionResult> RegisterWithRole()
         {
@@ -310,25 +311,19 @@ namespace AccountTemplate.Controllers
                     Name = model.Name,
                     Email = model.Email
                 };
-                var result = await _userManager.CreateAsync(user, model.Password);
+
+                var generatedPassword = GenerateRandomPassword(8);
+                var result = await _userManager.CreateAsync(user, generatedPassword);
 
                 if (result.Succeeded)
                 {
                     foreach (var role in model.Roles)
                     {
-                        var roleResult = await _userManager.AddToRoleAsync(user, role);
-                        if (!roleResult.Succeeded)
+                        if (await _roleManager.RoleExistsAsync(role))
                         {
-                            foreach (var error in roleResult.Errors)
-                            {
-                                ModelState.AddModelError(string.Empty, $"Error assigning role {role}: {error.Description}");
-                            }
-                            return View(model);
+                            await _userManager.AddToRoleAsync(user, role);
                         }
                     }
-
-                    await _userManager.UpdateAsync(user);
-
                     return RedirectToAction("Login", "Account");
                 }
 
@@ -341,5 +336,15 @@ namespace AccountTemplate.Controllers
             return View(model);
         }
 
+        private string GenerateRandomPassword(int length)
+        {
+            const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                var bytes = new byte[length];
+                rng.GetBytes(bytes);
+                return new string(bytes.Select(b => validChars[b % validChars.Length]).ToArray());
+            }
+        }
     }
 }

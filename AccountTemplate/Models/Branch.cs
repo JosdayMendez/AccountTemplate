@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AccountTemplate.Models
 {
@@ -24,9 +25,9 @@ namespace AccountTemplate.Models
         [StringLength(20, ErrorMessage = "WhatsApp cannot exceed 20 characters")]
         public string WhatsApp { get; set; }
 
-        [Required(ErrorMessage = "Geolocation is required")]
-        [StringLength(100, ErrorMessage = "Geolocation cannot exceed 100 characters")]
-        public string Geolocation { get; set; }
+        [Required(ErrorMessage = "Google Maps link is required")]
+        [StringLength(200, ErrorMessage = "Google Maps link cannot exceed 200 characters")]
+        public string GoogleMapsLink { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Email is not valid")]
@@ -36,6 +37,8 @@ namespace AccountTemplate.Models
         [StringLength(200, ErrorMessage = "Description cannot exceed 200 characters")]
         public string Description { get; set; }
 
-        public ICollection<ProfileBranch> ProfileBranches { get; set; }
+        public string UserId { get; set; }
+
+        public ICollection<UserBranch> UserBranches { get; set; }
     }
 }

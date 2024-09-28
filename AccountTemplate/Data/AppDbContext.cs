@@ -1,5 +1,4 @@
 ﻿using AccountTemplate.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,37 +9,34 @@ namespace AccountTemplate.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Profile> Profiles { get; set; }
-
         public DbSet<Branch> Branches { get; set; }
-        public DbSet<ProfileBranch> ProfileBranches { get; set; }
+        public DbSet<AppUser> Users { get; set; }
+        public DbSet<UserBranch> UserBranches { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
             builder.Entity<Profile>()
-                .ToTable("Profiles")
                 .HasKey(p => p.Id);
 
             builder.Entity<Branch>()
-               .ToTable("Branches")
-               .HasKey(b => b.Id);
+                .HasKey(b => b.Id);
 
-            builder.Entity<ProfileBranch>()
-                .ToTable("ProfileBranches")
-                .HasKey(pb => pb.Id);
+            builder.Entity<UserBranch>()
+                .HasKey(ub => ub.Id);
 
-            builder.Entity<ProfileBranch>()
-                .HasOne(pb => pb.Profile)
-                .WithMany(p => p.ProfileBranches)
-                .HasForeignKey(pb => pb.ProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<UserBranch>()
+                .HasOne(ub => ub.User)
+                .WithMany(u => u.UserBranches)
+                .HasForeignKey(ub => ub.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<ProfileBranch>()
-                .HasOne(pb => pb.Branch)
-                .WithMany(b => b.ProfileBranches)
-                .HasForeignKey(pb => pb.BranchId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<UserBranch>()
+                .HasOne(ub => ub.Branch)
+                .WithMany(b => b.UserBranches) 
+                .HasForeignKey(ub => ub.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

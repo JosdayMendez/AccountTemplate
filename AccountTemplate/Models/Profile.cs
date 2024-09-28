@@ -1,29 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace AccountTemplate.Models
+public class Profile
 {
-    public class Profile
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        [ForeignKey("AppUser")]
-        public string UserId { get; set; }
-        public AppUser AppUser { get; set; }
+    [ForeignKey("AppUser")]
+    public string UserId { get; set; }
+    public AppUser AppUser { get; set; }
 
-        [Required(ErrorMessage = "Business name is required.")]
-        public string BusinessName { get; set; }
+    public string BusinessName { get; set; } 
 
-        [Phone]
-        public string Phone { get; set; }
+    [Phone(ErrorMessage = "Invalid phone number.")]
+    public string Phone { get; set; }
 
-        [EmailAddress]
-        public string PrimaryEmail { get; set; }
+    [EmailAddress]
+    public string PrimaryEmail { get; set; } 
 
-        [EmailAddress]
-        public string SecondaryEmail { get; set; }
+    [StringLength(50, ErrorMessage = "Position cannot exceed 50 characters.")]
+    public string UserName { get; set; } 
 
-        public ICollection<ProfileBranch> ProfileBranches { get; set; }
-    }
+    [EmailAddress]
+    public string SecondaryEmail { get; set; }
+
+    [StringLength(50, ErrorMessage = "Position cannot exceed 50 characters.")]
+    public string Role { get; set; } = "N/A";
 }

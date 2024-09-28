@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AccountTemplate.Data;
 using AccountTemplate.Models;
 using AccountTemplate.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using AccountTemplate.Data;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace AccountTemplate.Controllers
 {
@@ -16,14 +19,12 @@ namespace AccountTemplate.Controllers
             _context = context;
         }
 
-        // GET: Branch
         public IActionResult Index()
         {
             var branches = _context.Branches.ToList();
             return View(branches);
         }
 
-        // GET: Branch/Create
         public IActionResult Create()
         {
             return View();
@@ -34,26 +35,25 @@ namespace AccountTemplate.Controllers
         {
             if (ModelState.IsValid)
             {
-                Branch branch = new()
+                var branch = new Branch
                 {
                     BranchName = model.BranchName,
                     Address = model.Address,
                     Phone = model.Phone,
                     WhatsApp = model.WhatsApp,
-                    Geolocation = model.Geolocation,
+                    GoogleMapsLink = model.GoogleMapsLink,
                     Email = model.Email,
-                    Description = model.Description
+                    Description = model.Description,
+                    UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
                 };
 
                 _context.Branches.Add(branch);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
             return View(model);
         }
 
-        // GET: Branch/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var branch = await _context.Branches.FindAsync(id);
@@ -69,7 +69,7 @@ namespace AccountTemplate.Controllers
                 Address = branch.Address,
                 Phone = branch.Phone,
                 WhatsApp = branch.WhatsApp,
-                Geolocation = branch.Geolocation,
+                GoogleMapsLink = branch.GoogleMapsLink,
                 Email = branch.Email,
                 Description = branch.Description
             };
@@ -92,7 +92,7 @@ namespace AccountTemplate.Controllers
                 branch.Address = model.Address;
                 branch.Phone = model.Phone;
                 branch.WhatsApp = model.WhatsApp;
-                branch.Geolocation = model.Geolocation;
+                branch.GoogleMapsLink = model.GoogleMapsLink;
                 branch.Email = model.Email;
                 branch.Description = model.Description;
 
@@ -100,7 +100,6 @@ namespace AccountTemplate.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
             return View(model);
         }
 
@@ -117,6 +116,5 @@ namespace AccountTemplate.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
     }
 }

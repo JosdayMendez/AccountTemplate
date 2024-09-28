@@ -1,4 +1,4 @@
-﻿@model IEnumerable<AccountTemplate.ViewModels.ProfileBranchVM>
+﻿@model IEnumerable<AccountTemplate.ViewModels.ProfileVM>
 
 @{
     ViewData["Title"] = "List Profile";
@@ -40,7 +40,7 @@
 
     <div class="card">
         <div class="card-header clearfix">
-            <h3 class="card-title">List Profile</h3>
+            <h3 class="card-title">List Profiles</h3>       
         </div>
         <!-- /.card-header -->
         <div class="card-body">
@@ -51,27 +51,22 @@
                         <th>Phone</th>
                         <th>Primary Email</th>
                         <th>Secondary Email</th>
-                        <th>Branches</th>
+                        <th>User Name</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var profileBranchVM in Model)
+                    @foreach (var profileVM in Model)
                     {
                         <tr>
-                            <td>@profileBranchVM.Profile.BusinessName</td>
-                            <td>@profileBranchVM.Profile.Phone</td>
-                            <td>@profileBranchVM.Profile.PrimaryEmail</td>
-                            <td>@profileBranchVM.Profile.SecondaryEmail</td>
+                            <td>@profileVM.BusinessName</td>
+                            <td>@profileVM.Phone</td>
+                            <td>@profileVM.PrimaryEmail</td>
+                            <td>@profileVM.SecondaryEmail</td>
+                            <td>@profileVM.UserName</td>
                             <td>
-                                @foreach (var assignedBranch in profileBranchVM.AssignedBranches)
-                                {
-                                    <p>@assignedBranch.Branch.BranchName</p>
-                                }
-                            </td>
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@profileBranchVM.Profile.Id" class="btn btn-primary btn-sm">Edit Profile</a>
-                                <a asp-action="AssignBranches" asp-route-id="@profileBranchVM.Profile.Id" class="btn btn-success btn-sm">Assign Branches</a>
+                                <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary btn-sm" style="box-shadow: none;"><b>Edit Profile</b></a>
+                                <a asp-controller="User" asp-action="AssignBranches" class="btn btn-success btn-sm">Assign Branch</a>
                             </td>
                         </tr>
                     }
