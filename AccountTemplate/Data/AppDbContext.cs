@@ -12,6 +12,7 @@ namespace AccountTemplate.Data
         public DbSet<Branch> Branches { get; set; }
         public DbSet<AppUser> Users { get; set; }
         public DbSet<UserBranch> UserBranches { get; set; }
+        public DbSet<Credit> Credits { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -34,10 +35,18 @@ namespace AccountTemplate.Data
 
             builder.Entity<UserBranch>()
                 .HasOne(ub => ub.Branch)
-                .WithMany(b => b.UserBranches) 
+                .WithMany(b => b.UserBranches)
                 .HasForeignKey(ub => ub.BranchId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Credit>()
+                .HasKey(c => c.Id);  
+
+            builder.Entity<Credit>()
+                .HasOne(c => c.User)  
+                .WithMany() 
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade); 
         }
     }
 }

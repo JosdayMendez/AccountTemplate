@@ -1,0 +1,48 @@
+﻿@using AccountTemplate.ViewModels
+@model UserCreditVM
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-3">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h1 class="card-title">User Credits</h1>
+            </div>
+            <div class="card-body">
+                <h3 class="profile-username text-center">@Model.Name</h3>
+                <ul class="list-group list-group-unbordered mb-3">
+                    <li class="list-group-item">
+                        <b>Current Balance:</b> <span class="float-right">@Model.Balance</span>
+                    </li>
+
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <li class="list-group-item">
+                            <b>Email:</b> <span class="float-right">@Model.Email</span>
+                        </li>
+                    }
+                    @if (Model.LastUpdated != DateTime.MinValue)
+                    {
+                        <li class="list-group-item">
+                            <b>Last Updated:</b> <span class="float-right">@Model.LastUpdated.ToString("g")</span>
+                        </li>
+                    }
+                </ul>
+
+                <div class="text-right">
+                    <a href="@Url.Action("Index", "Profile")" class="btn btn-secondary" style="box-shadow: none;"><b>Back to Profile</b></a>
+                    <a asp-action="ManageCredit" asp-route-email="@Model.Email" class="btn btn-primary" style="box-shadow: none;"><b>Buy Credits</b></a>
+
+                </div>
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </div>
+</div>

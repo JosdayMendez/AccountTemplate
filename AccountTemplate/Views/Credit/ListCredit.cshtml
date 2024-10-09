@@ -1,0 +1,79 @@
+﻿@model IEnumerable<AccountTemplate.ViewModels.UserCreditVM>
+
+@{
+    ViewData["Title"] = "User Credits";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .card {
+            margin: 0 auto;
+            max-width: 80%;
+        }
+
+        table {
+            text-align: center;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        th, td {
+            vertical-align: middle;
+        }
+
+        .create-button {
+            margin-bottom: 20px;
+            float: right;
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 class="text-center mt-4">@ViewData["Title"]</h2>
+
+    <div class="card">
+        <div class="card-header clearfix">
+            <h3 class="card-title">User Credits</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <table id="userCreditsTable" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Current Balance</th>
+                        <th>Last Updated</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.Name</td>
+                            <td>@user.Email</td>
+                            <td>@user.Balance</td>
+                            <td>@user.LastUpdated.ToString("g")</td>
+                            <td>
+                                <a asp-action="ManageCredit" asp-route-email="@user.Email" class="btn btn-primary btn-sm">Add Credits</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+</body>
+</html>
