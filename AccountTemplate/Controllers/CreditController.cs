@@ -125,6 +125,13 @@ namespace AccountTemplate.Controllers
                 return BadRequest("User ID is required.");
             }
 
+            if (model.PurchaseAmount <= 10)
+            {
+                ModelState.AddModelError(nameof(model.PurchaseAmount), "You must enter a valid amount to purchase.");
+                return View(model); 
+            }
+
+
             var user = await _userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
